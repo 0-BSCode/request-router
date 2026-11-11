@@ -1,5 +1,6 @@
 import { Link, Outlet, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 
+import { GuestMessageTester } from "#/components/GuestMessageTester";
 import { Button } from "#/components/ui/button";
 import { authClient } from "#/lib/auth-client";
 import { getSession } from "#/lib/session";
@@ -36,9 +37,7 @@ function AppLayout() {
       </header>
       <section className="py-8">
         <h2 className="text-2xl font-semibold">Guest request workspace</h2>
-        <p className="mt-2 text-muted-foreground">
-          The message processor and mock APIs have not been implemented yet.
-        </p>
+        <GuestMessageTester />
         <Link className="mt-4 inline-block underline underline-offset-4" to="/">
           Back home
         </Link>

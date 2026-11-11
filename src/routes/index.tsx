@@ -13,10 +13,11 @@ function Home() {
       </p>
       <Card className="mt-8">
         <CardHeader>
-          <CardTitle>Project foundation ready</CardTitle>
+          <CardTitle>Guest request tester ready</CardTitle>
         </CardHeader>
         <CardContent>
-          The message processor and mock Tasks and Messaging APIs have not been implemented yet.
+          Sign in to process synthetic guest messages and inspect mock department tasks and
+          acknowledgements.
         </CardContent>
       </Card>
       <Link to="/app" className="mt-6 inline-block underline underline-offset-4">
