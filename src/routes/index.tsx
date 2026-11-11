@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
 
 export const Route = createFileRoute("/")({ component: Home });
@@ -19,6 +19,9 @@ function Home() {
           The message processor and mock Tasks and Messaging APIs have not been implemented yet.
         </CardContent>
       </Card>
+      <Link to="/app" className="mt-6 inline-block underline underline-offset-4">
+        Open workspace
+      </Link>
     </main>
   );
 }

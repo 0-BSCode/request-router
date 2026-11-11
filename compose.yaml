@@ -1,5 +1,37 @@
 services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: request_router
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d request_router"]
+      interval: 2s
+      retries: 30
+
   app:
     build: .
     ports:
       - "3000:3000"
+    env_file:
+      - path: .env.local
+        required: false
+    environment:
+      DATABASE_URL: postgres://user:pass@db:5432/request_router
+      BETTER_AUTH_URL: http://localhost:3000
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-local-dev-secret-not-for-production}
+    depends_on:
+      db:
+        condition: service_healthy
+    develop:
+      watch:
+        - { action: rebuild, path: ./src }
+        - { action: rebuild, path: ./drizzle }
+        - { action: rebuild, path: ./package.json }
+        - { action: rebuild, path: ./pnpm-lock.yaml }
+
+volumes:
+  pgdata:
