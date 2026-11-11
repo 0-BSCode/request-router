@@ -52,7 +52,7 @@ The real authentication test is opt-in. Point `DATABASE_URL` at a migrated, disp
 - The SEO helper and its existing test.
 - Better Auth, Drizzle/Postgres, authentication pages, and database commands.
 
-The resume site, chatbot, demos, content collections, and deployment automation were excluded. Server endpoints can be added under `src/routes/` alongside the UI without introducing a separate backend. The template's dependency versions and lockfile are retained where applicable.
+The resume site, chatbot, demos, and content collections were excluded. The restored [Coolify setup helper](docs/deployment.md) creates resources without deploying by default. Server endpoints can be added under `src/routes/` alongside the UI without introducing a separate backend. The template's dependency versions and lockfile are retained where applicable.
 
 ## AI use
 
