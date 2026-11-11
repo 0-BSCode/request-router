@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from "vite-plus/test";
-import { extractRequests } from "./extract.server";
+import { ExtractionError, extractRequests } from "./extract.server";
 
 export const towelItem = {
   type: "towels",
@@ -96,4 +96,27 @@ test("propagates timeout for orchestration to review", async () => {
   await expect(
     extractRequests("Room 204: two towels", { key: "secret", model: "test" }),
   ).rejects.toThrow();
+});
+
+test.each([400, 401, 402, 404, 429, 503])(
+  "reports HTTP %s without exposing the provider body or credentials",
+  async (status) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response("secret-provider-body", { status })),
+    );
+    await expect(
+      extractRequests("Room 204: two towels", { key: "secret-key", model: "test/model" }),
+    ).rejects.toThrow(new ExtractionError(`OpenRouter rejected the request (HTTP ${status}).`));
+  },
+);
+
+test("network errors expose no underlying request details", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockRejectedValue(new Error("secret-key and private request details")),
+  );
+  await expect(
+    extractRequests("Room 204: two towels", { key: "secret-key", model: "test/model" }),
+  ).rejects.toThrow(new ExtractionError("Could not connect to OpenRouter."));
 });

@@ -8,7 +8,7 @@ import {
   type ProcessingResult,
   type TaskAttempt,
 } from "./contracts";
-import { extractRequests } from "./extract.server";
+import { ExtractionError, extractRequests } from "./extract.server";
 import { routeRequests } from "./routing";
 import { renderAcknowledgement } from "./templates";
 
@@ -64,9 +64,10 @@ export async function processMessage(request: Request): Promise<Response> {
     let extractionError: string | undefined;
     try {
       extraction = await extractRequests(message.text, { key, model });
-    } catch {
-      extractionError =
-        "The message could not be classified. Sent for front-desk review if task creation succeeds.";
+    } catch (error) {
+      const reason =
+        error instanceof ExtractionError ? error.message : "The message could not be classified.";
+      extractionError = `${reason} Sent for front-desk review if task creation succeeds.`;
     }
     const tasks: TaskAttempt[] = [];
     for (const task of routeRequests(message, extraction)) {

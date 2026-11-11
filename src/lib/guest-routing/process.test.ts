@@ -221,3 +221,12 @@ test("an injected department in model output cannot change routing", async () =>
   expect(result.tasks[0].task.department).toBe("front_desk");
   expect(result.tasks[0].task.reviewReason).toBe("extraction_failure");
 });
+
+test("exposes a safe OpenRouter HTTP status without provider details", async () => {
+  vi.mocked(fetch).mockImplementation(
+    async () => new Response("secret-provider-body", { status: 401 }),
+  );
+  const result = await (await processMessage(request())).json();
+  expect(result.extractionError).toContain("OpenRouter rejected the request (HTTP 401)");
+  expect(JSON.stringify(result)).not.toMatch(/secret-provider-body|secret-test|mock-test/);
+});
