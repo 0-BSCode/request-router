@@ -8,13 +8,13 @@ Create `.env.deploy` with the account initialization settings and routing config
 
 ```dotenv
 OWNER_EMAIL=reviewer@example.com
-OWNER_PASSWORD="your initial password"
-OPENROUTER_API_KEY="your service key"
+OWNER_PASSWORD='your initial password'
+OPENROUTER_API_KEY='your service key'
 OPENROUTER_MODEL=your/model-id
-MOCK_API_KEY="your sandbox secret"
+MOCK_API_KEY='your sandbox secret'
 ```
 
-Restrict access with `chmod 600 .env.deploy`. This file is ignored by Git and excluded from Docker builds. It uses dotenv syntax: quote values containing `#` or surrounding spaces. Values must be single-line. The helper reads data without executing shell substitutions.
+Restrict access with `chmod 600 .env.deploy`. This file is ignored by Git and excluded from Docker builds. Use the same dotenv-style quoting as local Docker: enclosing quotes are removed. Single-quote values containing `$`, `#`, or significant spaces to keep them literal in both environments; simple values can be quoted or unquoted. Do not rely on variable expansion, since Compose expands double-quoted or unquoted `$VARIABLE` expressions while the helper does not. Values must be single-line. The helper reads data without executing shell substitutions.
 
 ```sh
 SERVER_UUID=… \

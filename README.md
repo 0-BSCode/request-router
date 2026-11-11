@@ -32,7 +32,7 @@ pnpm start
 
 The development server and build regenerate `src/routeTree.gen.ts` when routes change. `pnpm generate-routes` generates it explicitly before standalone type checks. The production build produces a standalone Nitro Node server.
 
-Alternatively, run `docker compose up --build` and open http://localhost:3000. Compose reads `.env.local`, starts a separate Postgres service, applies migrations and provisions the owner before the app starts, and preserves data in the `pgdata` volume. `docker compose down` preserves the database; adding `-v` deletes it. The default Compose secret is for local development only.
+Alternatively, run `docker compose up --build` and open http://localhost:3000. Compose reads `.env.local` with normal dotenv-style quoting, starts a separate Postgres service, applies migrations and provisions the owner before the app starts, and preserves data in the `pgdata` volume. `docker compose down` preserves the database; adding `-v` deletes it. The default Compose secret is for local development only.
 
 ## Authentication and database
 
@@ -40,7 +40,7 @@ The app uses Cally's single-account setup with Better Auth and Drizzle/Postgres.
 
 `OWNER_EMAIL` is required at startup, trimmed and lowercased, and must stay consistent with the database's sole user. `OWNER_PASSWORD` is required only when the database is empty. Restarting preserves the stored password and sessions even if the initial password is changed or removed from runtime settings. Changing `OWNER_PASSWORD` does not reset the stored password. There is no password recovery or rotation flow; keep the shared credential in a password manager.
 
-Startup refuses additional users, a different owner email, or incomplete password credentials without changing account data. For local tests with old registered accounts, use a new dedicated database or `docker compose -p request-router-reviewer up --build` for a separate volume. Do not delete a volume holding data you need. Native `.env.local` uses dotenv syntax; quote values as needed.
+Startup refuses additional users, a different owner email, or incomplete password credentials without changing account data. For local tests with old registered accounts, use a new dedicated database or `docker compose -p request-router-reviewer up --build` for a separate volume. Do not delete a volume holding data you need. Use the same dotenv-style format for `.env.local` and `.env.deploy`: enclosing quotes are removed. Single-quote values containing `$`, `#`, or significant spaces so Compose preserves them literally. Simple values can be quoted or unquoted. If an account was created while raw mode was active, any literal quotes in its stored password remain part of that password; parsing changes do not reset accounts. Double-quoted or unquoted `$VARIABLE` expressions are not portable because Compose expands them.
 
 `pnpm start` applies pending migrations, runs `pnpm auth:bootstrap`, then starts the production server. `pnpm dev` runs bootstrap before Vite; run migrations first. Builds require no owner credentials or live database. For Coolify, configure `DATABASE_URL`, `BETTER_AUTH_URL` with the public HTTPS origin, a strong `BETTER_AUTH_SECRET`, `OWNER_EMAIL`, and the initial `OWNER_PASSWORD` as runtime variables. Use a separate database from Cally. No deployment has been performed.
 
@@ -135,3 +135,5 @@ Only the most recent submission is displayed. Editing the form does not alter an
 Verified on November 12, 2026: formatting, lint, type checks, deterministic routing tests, production build, and the existing database-backed auth test against an isolated disposable database. Browser checks used the production build with a temporary controlled OpenRouter response source outside the repository, while actual local mock HTTP endpoints and real auth sessions were exercised. Checks covered editable samples, loading state, keyboard submission, multi-request routing, missing-room review, English/Filipino/Cebuano templates, partial task failure, blank input, and session expiry. No production fault-injection control is included.
 
 Live OpenRouter evaluation was not performed because no real OpenRouter credentials/model were configured. Controlled responses verify application behavior, not real model accuracy. Before relying on the result, configure a compatible model and run the sample checklist above. Next steps are a live multilingual evaluation, language review of the templates, and, if this grows beyond an assessment, durable task storage and deduplication, guest-channel integration, and deployment access/abuse controls.
+
+To verify local/deployment quoting with temporary dummy credentials, run `node scripts/env-format.test.mjs`. This requires Docker and does not read local env files.
