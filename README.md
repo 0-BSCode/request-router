@@ -10,7 +10,7 @@ The assessment brief is preserved in `INSTRUCTIONS.md`. Planning files remain in
 
 ## Run locally
 
-Use Node.js 22 or later, pnpm 12.3.4, and PostgreSQL 17. Copy `.env.example` to `.env.local`, set `DATABASE_URL` to a dedicated database, and set `BETTER_AUTH_SECRET` to a random secret of at least 32 characters. Keep credentials out of Git.
+Use Node.js 22 or later, pnpm 12.3.4, and PostgreSQL 17. Copy `.env.example` to `.env.local`, set `DATABASE_URL` to a dedicated database, and set `BETTER_AUTH_SECRET` to a random secret of at least 32 characters. Set `OWNER_EMAIL` and an initial `OWNER_PASSWORD` of 8 to 128 characters. Keep credentials out of Git.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -18,7 +18,7 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Open http://localhost:3000. Create an account at `/sign-up`, sign in at `/sign-in`, and open the protected workspace at `/app`.
+Open http://localhost:3000, sign in at `/sign-in` with the configured owner credentials, and open `/app`. Startup creates the account before serving. Registration is disabled and `/sign-up` returns 404.
 
 ## Check and build
 
@@ -32,17 +32,28 @@ pnpm start
 
 The development server and build regenerate `src/routeTree.gen.ts` when routes change. `pnpm generate-routes` generates it explicitly before standalone type checks. The production build produces a standalone Nitro Node server.
 
-Alternatively, run `docker compose up --build` and open http://localhost:3000. Compose starts a separate Postgres service, applies migrations before the app starts, and preserves data in the `pgdata` volume. `docker compose down` preserves the database; adding `-v` deletes it. The default Compose secret is for local development only.
+Alternatively, run `docker compose up --build` and open http://localhost:3000. Compose reads `.env.local`, starts a separate Postgres service, applies migrations and provisions the owner before the app starts, and preserves data in the `pgdata` volume. `docker compose down` preserves the database; adding `-v` deletes it. The default Compose secret is for local development only.
 
 ## Authentication and database
 
-Thread's Better Auth server/client, session helper, auth API routes, and Drizzle/Postgres setup are restored. The initial migration creates `user`, `account`, `session`, and `verification`; the demo todos table is excluded. Public registration is currently enabled, as in Thread. Cally's single-account provisioning and registration restriction are not implemented yet. This setup should be restricted before deploying the intended reviewer-only app.
+The app uses Cally's single-account setup with Better Auth and Drizzle/Postgres. The existing migration creates `user`, `account`, `session`, and `verification`; this change needs no additional schema migration. Only the configured account can sign in, use `/app`, or process messages. Reviewers can share credentials across independent browser sessions; signing out of one does not sign out the others.
 
-`pnpm start` applies pending migrations before starting the production server. For Coolify, configure `DATABASE_URL`, `BETTER_AUTH_URL` with the public HTTPS origin, and a strong `BETTER_AUTH_SECRET` as runtime variables. Use a separate database from Cally. No deployment has been performed.
+`OWNER_EMAIL` is required at startup, trimmed and lowercased, and must stay consistent with the database's sole user. `OWNER_PASSWORD` is required only when the database is empty. Restarting preserves the stored password and sessions even if the initial password is changed or removed from runtime settings. Changing `OWNER_PASSWORD` does not reset the stored password. There is no password recovery or rotation flow; keep the shared credential in a password manager.
+
+Startup refuses additional users, a different owner email, or incomplete password credentials without changing account data. For local tests with old registered accounts, use a new dedicated database or `docker compose -p request-router-reviewer up --build` for a separate volume. Do not delete a volume holding data you need. Native `.env.local` uses dotenv syntax; quote values as needed.
+
+`pnpm start` applies pending migrations, runs `pnpm auth:bootstrap`, then starts the production server. `pnpm dev` runs bootstrap before Vite; run migrations first. Builds require no owner credentials or live database. For Coolify, configure `DATABASE_URL`, `BETTER_AUTH_URL` with the public HTTPS origin, a strong `BETTER_AUTH_SECRET`, `OWNER_EMAIL`, and the initial `OWNER_PASSWORD` as runtime variables. Use a separate database from Cally. No deployment has been performed.
 
 After schema changes, run `pnpm db:generate`, review the generated SQL, and apply it with `pnpm db:migrate`. Additional Drizzle commands are available as `db:push`, `db:pull`, and `db:studio`. Prefer committed migrations for deployment.
 
-The real authentication test is opt-in. Point `DATABASE_URL` at a migrated, disposable database whose name ends in `_auth_test`, set `BETTER_AUTH_URL=http://localhost:3000` and a test `BETTER_AUTH_SECRET`, then run `AUTH_DB_TEST=1 pnpm test src/lib/auth.test.ts`. The test checks registration, password hashing, rejected passwords, sessions, and sign-out, then removes the account it created.
+The auth and bootstrap suites clear auth data and are opt-in. Use only a migrated disposable database whose name ends in `_owner_test`. Export its `DATABASE_URL`, `BETTER_AUTH_URL=http://localhost:3000`, and a test `BETTER_AUTH_SECRET` of at least 32 characters, then run the suites separately because they share that database:
+
+```sh
+OWNER_DB_TEST=1 pnpm test src/lib/bootstrap-owner.test.ts
+AUTH_DB_TEST=1 pnpm test src/lib/auth.test.ts
+```
+
+These cover initialization, concurrency, safe failures, credential preservation, blocked registration, owner-only access, independent browser sessions, and sign-out. Default `pnpm test` skips these database suites.
 
 ## What was reused
 
@@ -107,7 +118,7 @@ For a live-model evaluation, load each sample in the signed-in workspace, compar
 
 Failed or invalid extraction creates one front-desk review task instead of guessing. Per-task failures do not erase successful tasks, stop other attempts, or trigger automatic retries. A failed acknowledgement leaves task outcomes intact. Provider response bodies and credentials are not returned to the browser. Session expiry requires signing in again; the processing endpoint checks sessions independently of the page.
 
-This is a local reviewer tester. It has no durable task/message history, rollback, automatic retry, or deduplication across submissions. Submitting again can create duplicate mock tasks. Do not use real guest data: message text is sent to OpenRouter and its selected provider. Public deployment needs a deliberate registration/access policy and abuse controls; the existing public sign-up behavior is unchanged by routing.
+This is a local reviewer tester. It has no durable task/message history, rollback, automatic retry, or deduplication across submissions. Submitting again can create duplicate mock tasks. Do not use real guest data: message text is sent to OpenRouter and its selected provider. Public registration is disabled and access is restricted to the configured shared account. Broader public use would still need abuse controls.
 
 ## Using the routing tester
 

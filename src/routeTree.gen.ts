@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as SignInRouteImport } from './routes/sign-in'
-import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as ApiProcessMessageRouteImport } from './routes/api/process-message'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiMockMessagesRouteImport } from './routes/api/mock/messages'
@@ -31,11 +30,6 @@ const AppRoute = AppRouteImport.update({
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignUpRoute = SignUpRouteImport.update({
-  id: '/sign-up',
-  path: '/sign-up',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiProcessMessageRoute = ApiProcessMessageRouteImport.update({
@@ -63,7 +57,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/sign-in': typeof SignInRoute
-  '/sign-up': typeof SignUpRoute
   '/api/process-message': typeof ApiProcessMessageRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/mock/messages': typeof ApiMockMessagesRoute
@@ -73,7 +66,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/sign-in': typeof SignInRoute
-  '/sign-up': typeof SignUpRoute
   '/api/process-message': typeof ApiProcessMessageRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/mock/messages': typeof ApiMockMessagesRoute
@@ -84,7 +76,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRoute
   '/sign-in': typeof SignInRoute
-  '/sign-up': typeof SignUpRoute
   '/api/process-message': typeof ApiProcessMessageRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/mock/messages': typeof ApiMockMessagesRoute
@@ -96,7 +87,6 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/sign-in'
-    | '/sign-up'
     | '/api/process-message'
     | '/api/auth/$'
     | '/api/mock/messages'
@@ -106,7 +96,6 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/sign-in'
-    | '/sign-up'
     | '/api/process-message'
     | '/api/auth/$'
     | '/api/mock/messages'
@@ -116,7 +105,6 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/sign-in'
-    | '/sign-up'
     | '/api/process-message'
     | '/api/auth/$'
     | '/api/mock/messages'
@@ -127,7 +115,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRoute
   SignInRoute: typeof SignInRoute
-  SignUpRoute: typeof SignUpRoute
   ApiProcessMessageRoute: typeof ApiProcessMessageRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiMockMessagesRoute: typeof ApiMockMessagesRoute
@@ -155,13 +142,6 @@ declare module '@tanstack/react-router' {
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof SignInRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sign-up': {
-      id: '/sign-up'
-      path: '/sign-up'
-      fullPath: '/sign-up'
-      preLoaderRoute: typeof SignUpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/process-message': {
@@ -199,7 +179,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRoute,
   SignInRoute: SignInRoute,
-  SignUpRoute: SignUpRoute,
   ApiProcessMessageRoute: ApiProcessMessageRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiMockMessagesRoute: ApiMockMessagesRoute,

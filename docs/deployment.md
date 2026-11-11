@@ -4,11 +4,14 @@ The setup script creates a PostgreSQL resource and a Dockerfile app, writes runt
 
 Before running it, configure the `coolify` CLI for the target context, create or choose a server and project, register a GitHub App that can access the repository, and point an unused HTTPS domain at the server. Run `vp install` locally first.
 
-Optionally create `.env.deploy` for custom runtime settings:
+Create `.env.deploy` with the account initialization settings and routing configuration:
 
 ```dotenv
-OPENAI_API_KEY="your service key"
-CUSTOM_API_KEY="another service key"
+OWNER_EMAIL=reviewer@example.com
+OWNER_PASSWORD="your initial password"
+OPENROUTER_API_KEY="your service key"
+OPENROUTER_MODEL=your/model-id
+MOCK_API_KEY="your sandbox secret"
 ```
 
 Restrict access with `chmod 600 .env.deploy`. This file is ignored by Git and excluded from Docker builds. It uses dotenv syntax: quote values containing `#` or surrounding spaces. Values must be single-line. The helper reads data without executing shell substitutions.
@@ -23,7 +26,7 @@ DOMAIN=https://app.example.com \
 bash scripts/coolify-setup.sh --setup-only
 ```
 
-The helper automatically reads `.env.deploy`. Select another file by adding `INPUT_ENV_FILE=.env.owner` to the command; paths are relative to the project root. An explicitly selected missing file stops setup. Every variable in the selected file is forwarded as a literal runtime setting. With no input file, the legacy `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and `GEMINI_API_KEY` fallback from `.env.local` still applies; other local variables are not copied. Exported shell variables are not automatically forwarded as runtime settings.
+The helper automatically reads `.env.deploy`. Select another file by adding `INPUT_ENV_FILE=.env.owner` to the command; paths are relative to the project root. An explicitly selected missing file stops setup. Every variable in the selected file is forwarded as a literal runtime setting. Owner settings must be present in the private input file; missing or invalid values stop setup before any resources are created. Shell owner variables and `.env.local` are not copied as owner settings. Exported shell variables are not automatically forwarded as runtime settings.
 
 Do not put `DATABASE_URL`, `BETTER_AUTH_URL`, or `BETTER_AUTH_SECRET` in the input file. Setup generates these and rejects input overrides before creating resources. To use your own database or auth settings, create the Coolify resources and configure their runtime environment manually. `.env.production` is generated output, never an input file; keep your custom inputs in a separate file.
 
@@ -48,4 +51,8 @@ coolify deploy uuid YOUR_APPLICATION_UUID
 
 Do not rerun setup to deploy resources it already created. The generated `.env.production` prevents accidental retries, but a failure before generating that file can still leave remote resources behind. Inspect Coolify before rerunning.
 
-This script configures infrastructure only. It does not create a reviewer account or disable public registration in the application.
+On first application startup, migrations run and one configured account is created before requests are accepted. Registration is disabled. Supply a valid `OWNER_EMAIL` and an initial `OWNER_PASSWORD` of 8 to 128 characters. Builds do not require these settings, and the helper syncs them as runtime-only literals.
+
+Keep `OWNER_EMAIL` stable. Once the account exists, you can remove `OWNER_PASSWORD` from Coolify's runtime settings. Restarting keeps the stored password and sessions; changing that setting does not reset the password. There is no password recovery or rotation command. Existing databases with another account, multiple users, or incomplete credentials cause startup to fail without deleting data.
+
+The helper creates fresh resources and requires both owner inputs. Do not rerun it to restart or rotate credentials for an existing app; use the existing app's runtime settings and redeployment controls. Reviewers can use the same credentials from separate browsers with independent sessions. Communicating those credentials is a separate operator action.

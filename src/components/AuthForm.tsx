@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 
 import { Button } from "#/components/ui/button";
@@ -11,7 +11,7 @@ function formValue(form: FormData, name: string) {
   return typeof value === "string" ? value : "";
 }
 
-export default function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
+export default function AuthForm() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -26,14 +26,7 @@ export default function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     const password = formValue(form, "password");
 
     try {
-      const result =
-        mode === "sign-up"
-          ? await authClient.signUp.email({
-              email,
-              password,
-              name: formValue(form, "name"),
-            })
-          : await authClient.signIn.email({ email, password });
+      const result = await authClient.signIn.email({ email, password });
 
       if (result.error) {
         setError(result.error.message ?? "Something went wrong.");
@@ -48,23 +41,13 @@ export default function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     }
   }
 
-  const signUp = mode === "sign-up";
-
   return (
     <main className="mx-auto flex min-h-[70vh] max-w-md items-center px-4 py-12">
       <section className="w-full rounded-2xl border border-border bg-card p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold">{signUp ? "Create an account" : "Sign in"}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {signUp ? "Set up your workspace." : "Continue to your workspace."}
-        </p>
+        <h1 className="text-2xl font-semibold">Sign in</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Continue to your workspace.</p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4" aria-busy={pending}>
-          {signUp && (
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" name="name" required autoComplete="name" />
-            </div>
-          )}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input id="email" name="email" type="email" required autoComplete="email" />
@@ -77,7 +60,7 @@ export default function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
               type="password"
               required
               minLength={8}
-              autoComplete={signUp ? "new-password" : "current-password"}
+              autoComplete="current-password"
             />
           </div>
           <p
@@ -88,16 +71,9 @@ export default function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
             {error}
           </p>
           <Button type="submit" disabled={pending} className="w-full" aria-busy={pending}>
-            {pending ? "Please wait…" : signUp ? "Create account" : "Sign in"}
+            {pending ? "Please wait…" : "Sign in"}
           </Button>
         </form>
-
-        <p className="mt-5 text-center text-sm text-muted-foreground">
-          {signUp ? "Already have an account? " : "Need an account? "}
-          <Link className="underline underline-offset-4" to={signUp ? "/sign-in" : "/sign-up"}>
-            {signUp ? "Sign in" : "Create one"}
-          </Link>
-        </p>
       </section>
     </main>
   );

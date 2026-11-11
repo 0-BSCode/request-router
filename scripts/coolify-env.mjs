@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { resolve } from "node:path";
 import { parse } from "dotenv";
+import { z } from "zod";
 
 const input = process.env.INPUT_ENV_FILE ?? ".env.deploy";
 const generated = ["DATABASE_URL", "BETTER_AUTH_URL", "BETTER_AUTH_SECRET"];
@@ -37,7 +38,22 @@ try {
 }
 
 const [mode, ...keys] = process.argv.slice(2);
-if (mode === "get") {
+if (mode === "validate-owner") {
+  if (!z.email().safeParse(values.OWNER_EMAIL?.trim().toLowerCase()).success) {
+    console.error("Set OWNER_EMAIL to a valid email in the private deployment input file.");
+    process.exit(1);
+  }
+  if (
+    !values.OWNER_PASSWORD ||
+    values.OWNER_PASSWORD.length < 8 ||
+    values.OWNER_PASSWORD.length > 128
+  ) {
+    console.error(
+      "Set OWNER_PASSWORD to an initial password of 8 to 128 characters in the private deployment input file.",
+    );
+    process.exit(1);
+  }
+} else if (mode === "get") {
   const value = process.env[keys[0]] ?? values[keys[0]] ?? "";
   if (/[\r\n\0]/.test(value)) {
     console.error("Runtime values must be single-line.");
@@ -50,5 +66,5 @@ if (mode === "get") {
     if (!keys.includes(key)) process.stdout.write(`${key}='${value}'\n`);
   }
 } else if (mode !== "validate") {
-  throw new Error("Expected validate, get KEY, or append [EXCLUDED_KEYS].");
+  throw new Error("Expected validate, validate-owner, get KEY, or append [EXCLUDED_KEYS].");
 }

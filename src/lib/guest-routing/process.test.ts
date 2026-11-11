@@ -3,8 +3,8 @@ import { processingResultSchema } from "./contracts";
 import { processMessage } from "./process.server";
 import { createMockTask, sendMockMessage } from "./mocks.server";
 
-const { getSession } = vi.hoisted(() => ({ getSession: vi.fn() }));
-vi.mock("#/lib/auth", () => ({ auth: { api: { getSession } } }));
+const { getOwnerSession } = vi.hoisted(() => ({ getOwnerSession: vi.fn() }));
+vi.mock("#/lib/auth", () => ({ getOwnerSession }));
 function requestUrl(value: RequestInfo | URL) {
   return value instanceof Request ? value.url : value.toString();
 }
@@ -35,7 +35,7 @@ const request = (data: unknown = input) =>
   });
 
 beforeEach(() => {
-  getSession.mockResolvedValue({ user: { id: "reviewer" } });
+  getOwnerSession.mockResolvedValue({ user: { id: "reviewer" } });
   vi.stubEnv("OPENROUTER_API_KEY", "secret-test");
   vi.stubEnv("OPENROUTER_MODEL", "test/model");
   vi.stubEnv("MOCK_API_KEY", "mock-test");
@@ -69,7 +69,7 @@ test("creates a housekeeping task through the mock and returns its receipt", asy
     task: { department: "housekeeping", messageId: "test", room: "204" },
   });
   expect(result.tasks[0].status === "created" && result.tasks[0].taskId).toBeTruthy();
-  expect(getSession).toHaveBeenCalledWith({ headers: expect.any(Headers) });
+  expect(getOwnerSession).toHaveBeenCalledWith(expect.any(Headers));
 });
 
 test("sends an English template after task creation without claiming service completion", async () => {
@@ -165,7 +165,7 @@ test.each(["partial", "total", "timeout", "invalid receipt", "delivery"])(
 );
 
 test("requires a session before every external call", async () => {
-  getSession.mockResolvedValue(null);
+  getOwnerSession.mockResolvedValue(null);
   expect((await processMessage(request())).status).toBe(401);
   expect(fetch).not.toHaveBeenCalled();
 });

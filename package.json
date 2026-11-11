@@ -6,7 +6,7 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "vp dev --port 3000",
+    "dev": "pnpm auth:bootstrap && vp dev --port 3000",
     "generate-routes": "tsr generate",
     "build": "vp build",
     "test": "vp test",
@@ -17,7 +17,8 @@
     "db:push": "drizzle-kit push",
     "db:pull": "drizzle-kit pull",
     "db:studio": "drizzle-kit studio",
-    "start": "pnpm db:migrate && node .output/server/index.mjs"
+    "start": "pnpm db:migrate && pnpm auth:bootstrap && node .output/server/index.mjs",
+    "auth:bootstrap": "tsx scripts/bootstrap-owner.ts"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.2.2",
@@ -58,6 +59,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "dotenv": "17.4.2",
     "drizzle-kit": "0.31.10",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:"

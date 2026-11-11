@@ -29,7 +29,7 @@ ENV_FILE=.env.production
 cd "$(dirname "$0")/.."
 [[ -e $ENV_FILE ]] && { echo "$ENV_FILE exists; it is generated output. Use .env.deploy for inputs and inspect this file before retrying so deploy secrets are not overwritten." >&2; exit 1; }
 
-node scripts/coolify-env.mjs validate
+node scripts/coolify-env.mjs validate-owner
 
 uuid() { grep -oE '"uuid": ?"[^"]+"' | head -1 | cut -d'"' -f4; }
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { auth } from "#/lib/auth";
+import { getOwnerSession } from "#/lib/auth";
 import {
   deliveryReceiptSchema,
   messageSchema,
@@ -32,7 +32,7 @@ async function postMock<T>(
 
 export async function processMessage(request: Request): Promise<Response> {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
+    const session = await getOwnerSession(request.headers);
     if (!session) return Response.json({ error: "Sign in to process a message." }, { status: 401 });
     const origin = new URL(request.url).origin;
     // Do not send sandbox credentials to a client-controlled host or cross-origin caller.

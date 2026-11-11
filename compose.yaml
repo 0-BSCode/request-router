@@ -18,7 +18,7 @@ services:
       - "3000:3000"
     env_file:
       - path: .env.local
-        required: false
+        required: true
     environment:
       DATABASE_URL: postgres://user:pass@db:5432/request_router
       BETTER_AUTH_URL: http://localhost:3000
