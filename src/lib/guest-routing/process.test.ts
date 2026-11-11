@@ -230,3 +230,43 @@ test("exposes a safe OpenRouter HTTP status without provider details", async () 
   expect(result.extractionError).toContain("OpenRouter rejected the request (HTTP 401)");
   expect(JSON.stringify(result)).not.toMatch(/secret-provider-body|secret-test|mock-test/);
 });
+
+test("accepts the public browser origin behind a proxy and calls only the configured mock host", async () => {
+  vi.stubEnv("BETTER_AUTH_URL", "https://router.example.test");
+  const response = await processMessage(
+    new Request("http://internal-app:3000/api/process-message", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "https://router.example.test" },
+      body: JSON.stringify(input),
+    }),
+  );
+  expect(response.status).toBe(200);
+  expect((await response.json()).tasks[0].status).toBe("created");
+  const mockCalls = vi
+    .mocked(fetch)
+    .mock.calls.filter(([url]) => !requestUrl(url).startsWith("https://openrouter.ai/"));
+  expect(mockCalls).toHaveLength(2);
+  for (const [url] of mockCalls)
+    expect(new URL(requestUrl(url)).origin).toBe("https://router.example.test");
+});
+
+test("ignores forged forwarding headers and rejects cross-origin callers behind a proxy", async () => {
+  vi.stubEnv("BETTER_AUTH_URL", "https://router.example.test");
+  for (const origin of [undefined, "https://attacker.example"]) {
+    const headers = new Headers({
+      "content-type": "application/json",
+      "x-forwarded-host": "router.example.test",
+      "x-forwarded-proto": "https",
+    });
+    if (origin) headers.set("origin", origin);
+    const response = await processMessage(
+      new Request("http://internal-app:3000/api/process-message", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(input),
+      }),
+    );
+    expect(response.status).toBe(403);
+  }
+  expect(fetch).not.toHaveBeenCalled();
+});

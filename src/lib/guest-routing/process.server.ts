@@ -34,12 +34,10 @@ export async function processMessage(request: Request): Promise<Response> {
   try {
     const session = await getOwnerSession(request.headers);
     if (!session) return Response.json({ error: "Sign in to process a message." }, { status: 401 });
-    const origin = new URL(request.url).origin;
-    // Do not send sandbox credentials to a client-controlled host or cross-origin caller.
-    if (
-      origin !== new URL(process.env.BETTER_AUTH_URL || "http://localhost:3000").origin ||
-      (request.headers.has("origin") && request.headers.get("origin") !== origin)
-    ) {
+    const origin = new URL(process.env.BETTER_AUTH_URL || "http://localhost:3000").origin;
+    // Proxies can rewrite request.url; trust only the configured destination and matching caller origin.
+    const callerOrigin = request.headers.get("origin") ?? new URL(request.url).origin;
+    if (callerOrigin !== origin) {
       return Response.json({ error: "Invalid request origin." }, { status: 403 });
     }
     const parsed = messageSchema.safeParse(await request.json().catch(() => null));
