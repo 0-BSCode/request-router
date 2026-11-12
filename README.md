@@ -157,4 +157,4 @@ Six synthetic live acceptance cases passed using `openai/gpt-6-luna`: Filipino l
 
 Next steps are broader held-out model evaluation and fluent-speaker review, and, if this grows beyond an assessment, durable task storage and deduplication, guest-channel integration, and deployment access/abuse controls.
 
-To verify local/deployment quoting with temporary dummy credentials, run `node scripts/env-format.test.mjs`. This requires Docker and does not read local env files.
+To verify local/deployment quoting with temporary dummy credentials, run `node scripts/check-env-format.mjs`. This requires Docker and does not read local env files.
