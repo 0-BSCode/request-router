@@ -1,28 +1,44 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/")({ component: Home });
+import { GuestMessageTester } from "#/components/GuestMessageTester";
+import { Button } from "#/components/ui/button";
+import { authClient } from "#/lib/auth-client";
+import { getSession } from "#/lib/session";
 
-function Home() {
+export const Route = createFileRoute("/")({
+  beforeLoad: async () => {
+    const user = await getSession();
+    if (!user) throw redirect({ to: "/sign-in" });
+    return { user };
+  },
+  component: Workspace,
+});
+
+function Workspace() {
+  const { user } = Route.useRouteContext();
+  const navigate = useNavigate();
+
   return (
-    <main className="mx-auto min-h-[70vh] max-w-4xl px-6 py-16">
-      <p className="text-sm text-muted-foreground">Visayas Bay Resort</p>
-      <h1 className="mt-2 text-3xl font-semibold">Guest request router</h1>
-      <p className="mt-4 max-w-xl text-muted-foreground">
-        Route guest requests to the right department and acknowledge each message.
-      </p>
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle>Guest request tester ready</CardTitle>
-        </CardHeader>
-        <CardContent>
-          Sign in to process synthetic guest messages and inspect mock department tasks and
-          acknowledgements.
-        </CardContent>
-      </Card>
-      <Link to="/app" className="mt-6 inline-block underline underline-offset-4">
-        Open workspace
-      </Link>
+    <main className="mx-auto min-h-[70vh] max-w-3xl px-4 py-12">
+      <header className="flex items-center justify-between gap-4 border-b border-border pb-4">
+        <div>
+          <p className="text-sm text-muted-foreground">Signed in as</p>
+          <h1 className="text-xl font-semibold">{user.email}</h1>
+        </div>
+        <Button
+          variant="outline"
+          onClick={async () => {
+            const result = await authClient.signOut();
+            if (!result.error) void navigate({ to: "/sign-in", replace: true });
+          }}
+        >
+          Sign out
+        </Button>
+      </header>
+      <section className="py-8">
+        <h2 className="text-2xl font-semibold">Guest request workspace</h2>
+        <GuestMessageTester />
+      </section>
     </main>
   );
 }

@@ -12,7 +12,7 @@ The tester SHALL use the workspace only with a valid session for the configured 
 
 #### Scenario: Unauthenticated workspace access
 
-- **WHEN** a visitor opens `/app` without a valid session
+- **WHEN** a visitor opens `/` without a valid session
 - **THEN** the existing sign-in flow is used and the tester cannot be submitted
 
 #### Scenario: Direct unauthenticated processing request
@@ -37,7 +37,7 @@ The tester SHALL use the workspace only with a valid session for the configured 
 
 ### Requirement: Submit one guest message
 
-The protected `/app` workspace SHALL provide a labelled channel selector for WhatsApp or email, an editable message textarea, and a Process message button. It SHALL generate a message ID and use a documented test sender. The room SHALL be extracted from the message rather than entered in a separate field.
+The protected `/` workspace SHALL provide a labelled channel selector for WhatsApp or email, an editable message textarea, and a Process message button. It SHALL generate a message ID and use a documented test sender. The room SHALL be extracted from the message rather than entered in a separate field.
 
 #### Scenario: Manual message
 
@@ -79,3 +79,46 @@ The UI SHALL call the server-side processing flow and SHALL NOT receive OpenRout
 
 - **WHEN** a tester inspects the result of a successful run
 - **THEN** the screen identifies task creation and acknowledgement delivery as mocked and exposes no API credential
+
+### Requirement: Canonical workspace navigation
+
+The application SHALL serve the workspace at `/` instead of a public landing page. Successful sign-in and visits to `/sign-in` with an authorized reviewer session SHALL lead to `/`. Signed-out visitors SHALL be able to use `/sign-in`. Workspace navigation SHALL NOT show obsolete Open workspace or Back home actions. Successful sign-out SHALL lead to `/sign-in` and subsequent protected access SHALL require authentication.
+
+#### Scenario: Authorized root visit
+
+- **WHEN** the configured reviewer opens `/` with a valid session
+- **THEN** the guest-message tester is displayed directly without the former landing page or its extra navigation step
+
+#### Scenario: Successful sign-in
+
+- **WHEN** a reviewer successfully signs in at `/sign-in`
+- **THEN** the application navigates to `/` and displays the workspace
+
+#### Scenario: Already signed in
+
+- **WHEN** a reviewer opens `/sign-in` with an authorized session
+- **THEN** they are redirected to `/` without a redirect loop
+
+#### Scenario: Signed-out sign-in page
+
+- **WHEN** a visitor without an authorized session opens `/sign-in`
+- **THEN** the login form remains accessible without redirecting them back to the protected root
+
+#### Scenario: Sign-out
+
+- **WHEN** a reviewer successfully signs out using either visible sign-out control
+- **THEN** they reach `/sign-in` and opening `/` again cannot display the protected workspace without signing in
+
+### Requirement: Preserve the legacy workspace link
+
+The application SHALL redirect visits to `/app` to the canonical `/` workspace. Following that redirect SHALL enforce the same owner-only access rules as opening `/` directly, without serving a duplicate workspace.
+
+#### Scenario: Existing signed-in bookmark
+
+- **WHEN** an authorized reviewer opens an existing `/app` bookmark
+- **THEN** they are redirected to `/` and can use the workspace
+
+#### Scenario: Existing signed-out bookmark
+
+- **WHEN** a signed-out visitor opens `/app`
+- **THEN** they are redirected through `/` to `/sign-in` without seeing protected workspace content

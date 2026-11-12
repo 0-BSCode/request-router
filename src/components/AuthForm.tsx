@@ -33,7 +33,7 @@ export default function AuthForm() {
         return;
       }
 
-      void navigate({ to: "/app" });
+      void navigate({ to: "/", replace: true });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Something went wrong.");
     } finally {

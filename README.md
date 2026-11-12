@@ -4,7 +4,7 @@ A starter for the Visayas Bay Resort guest request router assessment, adapted fr
 
 ## Current status
 
-The application includes email/password authentication backed by PostgreSQL and a protected guest-message tester at `/app`. The server extracts multilingual requests through OpenRouter, routes them to three departments through mock Tasks APIs, and sends outcome-based template replies through a mock Messaging API. Task and message results are simulated and not stored.
+The application includes email/password authentication backed by PostgreSQL and a protected guest-message tester at `/`. The server extracts multilingual requests through OpenRouter, routes them to three departments through mock Tasks APIs, and sends outcome-based template replies through a mock Messaging API. Task and message results are simulated and not stored.
 
 The assessment brief is preserved in `INSTRUCTIONS.md`. Planning files remain in `openspec/`. Adapting this starter does not start the assessment timer or publish or submit a repository.
 
@@ -18,7 +18,7 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Open http://localhost:3000, sign in at `/sign-in` with the configured owner credentials, and open `/app`. Startup creates the account before serving. Registration is disabled and `/sign-up` returns 404.
+Open http://localhost:3000, sign in at `/sign-in` with the configured owner credentials, and open `/`. Startup creates the account before serving. Registration is disabled and `/sign-up` returns 404. The root URL is the protected workspace: signed-out visitors go to `/sign-in`, and signed-in visitors to `/sign-in` return to `/`. Existing `/app` links redirect to `/`.
 
 ## Check and build
 
@@ -36,7 +36,7 @@ Alternatively, run `docker compose up --build` and open http://localhost:3000. C
 
 ## Authentication and database
 
-The app uses Cally's single-account setup with Better Auth and Drizzle/Postgres. The existing migration creates `user`, `account`, `session`, and `verification`; this change needs no additional schema migration. Only the configured account can sign in, use `/app`, or process messages. Reviewers can share credentials across independent browser sessions; signing out of one does not sign out the others.
+The app uses Cally's single-account setup with Better Auth and Drizzle/Postgres. The existing migration creates `user`, `account`, `session`, and `verification`; this change needs no additional schema migration. Only the configured account can sign in, use `/`, or process messages. Reviewers can share credentials across independent browser sessions; signing out of one does not sign out the others.
 
 `OWNER_EMAIL` is required at startup, trimmed and lowercased, and must stay consistent with the database's sole user. `OWNER_PASSWORD` is required only when the database is empty. Restarting preserves the stored password and sessions even if the initial password is changed or removed from runtime settings. Changing `OWNER_PASSWORD` does not reset the stored password. There is no password recovery or rotation flow; keep the shared credential in a password manager.
 
@@ -122,7 +122,7 @@ This is a local reviewer tester. It has no durable task/message history, rollbac
 
 ## Using the routing tester
 
-1. Start the app with its database/auth environment and the three routing values set. Sign in and open `/app`.
+1. Start the app with its database/auth environment and the three routing values set. Sign in and open `/`.
 2. Choose a sample or edit the guest message. Select WhatsApp or email. The room belongs in the text, not a separate field; the UI supplies a fresh message ID and a synthetic sender.
 3. Click Process message. The form is disabled while processing; loading a sample alone never submits it.
 4. Inspect each task's department, room, details, source evidence, ID, review reason, and created/failed status. Read the exact acknowledgement and its separate sent/failed status. Mock badges mean no actual service was scheduled or message delivered.
