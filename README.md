@@ -78,7 +78,7 @@ Set `MOCK_API_KEY` in `.env.local` to a nonempty sandbox secret. Keep it on the 
 - `POST /api/mock/tasks` accepts `{messageId, channel, sender, type, details, sourceText, originalMessage, detectedLanguage, room, department, needsReview, reviewReason}` and returns `{taskId}`. Rooms are strings or null; review reasons are strings or null. A review task must target front desk with a review reason. Normal tasks require a known type and room. `detectedLanguage` is required and validated on every task; older payloads without it are rejected.
 - `POST /api/mock/messages` accepts `{messageId, channel, recipient, text}` and returns `{deliveryId}`.
 
-The shared schemas in `src/lib/guest-routing/contracts.ts` define allowed values and bounds. These APIs are assessment mocks, not production task or messaging services. `.env` and `.env.local` are ignored; `.env.example` contains names and blank routing secrets only.
+The signed-in API reference page at `/reference` shows complete example requests and responses for both endpoints. The shared schemas in `src/lib/guest-routing/contracts.ts` define allowed values and bounds. These APIs are assessment mocks, not production task or messaging services. `.env` and `.env.local` are ignored; `.env.example` contains names and blank routing secrets only.
 
 ## OpenRouter and processing
 
@@ -135,11 +135,13 @@ This is a local reviewer tester. It has no durable task/message history, rollbac
 
 ## Using the routing tester
 
-1. Start the app with its database/auth environment and the three routing values set. Sign in and open `/`.
+1. Start the app with its database/auth environment and the three routing values set. Sign in and open `/`, the tester. The navigation bar links App (`/`) and API Reference (`/reference`) once you are signed in.
 2. Choose a sample or edit the guest message. Select WhatsApp or email. The room belongs in the text, not a separate field; the UI supplies a fresh message ID and a synthetic sender.
 3. Click Process message. The form is disabled while processing; loading a sample alone never submits it.
 4. Inspect each task's English summary, guest language and derived support label, department, room, source evidence, ID, review reason, and created/failed status. Read the exact acknowledgement and its separate sent/failed status. Mock badges mean no actual service was scheduled or message delivered.
 5. If the session expires, use Sign in again. If a request fails before a result is received, check before resubmitting because partial work might already have happened.
+
+The API reference page at `/reference` is a static reference for `POST /api/mock/tasks` and `POST /api/mock/messages`, each in a collapsible section that starts collapsed. Expanding one shows headers with a `<MOCK_API_KEY>` placeholder, one synthetic request body and example 201 response per endpoint, and the 400/401/503 meanings above. These are fixed examples, validated against the shared schemas in tests, not records of your submissions; opening it sends no request and shows no live outcomes or credentials. It requires the same sign-in as the tester. Leaving the tester resets its form and results, as a reload does; a submission still pending when you leave completes on the server, so check before resubmitting.
 
 Only the most recent submission is displayed. Editing the form does not alter an existing result, which retains its submitted message; a new submission clears it. There is no task-management screen, model selector, or history.
 
