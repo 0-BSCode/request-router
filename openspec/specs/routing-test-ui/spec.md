@@ -126,7 +126,7 @@ The application SHALL serve the workspace at `/` instead of a public landing pag
 
 #### Scenario: Sign-out
 
-- **WHEN** a reviewer successfully signs out using either visible sign-out control
+- **WHEN** a reviewer successfully signs out using the sign-out button in the navigation bar
 - **THEN** they reach `/sign-in` and opening `/` again cannot display the protected workspace without signing in
 
 ### Requirement: Preserve the legacy workspace link
