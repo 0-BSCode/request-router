@@ -44,7 +44,7 @@ export default function AuthForm() {
   return (
     <main className="mx-auto flex min-h-[70vh] max-w-md items-center px-4 py-12">
       <section className="w-full rounded-2xl border border-border bg-card p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold">Sign in</h1>
+        <h1 className="font-display text-3xl font-medium tracking-tight">Sign in</h1>
         <p className="mt-2 text-sm text-muted-foreground">Continue to your workspace.</p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4" aria-busy={pending}>

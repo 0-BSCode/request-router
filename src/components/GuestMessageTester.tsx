@@ -198,7 +198,9 @@ export function GuestMessageTester() {
             <div>
               <h2 className="text-lg font-semibold">Results for this submission</h2>
               <p className="text-xs text-muted-foreground">Message {result.messageId}</p>
-              <p className="mt-2 whitespace-pre-wrap">{submittedText}</p>
+              <p className="mt-2 rounded-2xl bg-muted px-5 py-4 whitespace-pre-wrap">
+                {submittedText}
+              </p>
             </div>
             {result.extractionError && (
               <p role="alert" className="text-sm text-destructive">

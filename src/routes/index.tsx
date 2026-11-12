@@ -16,7 +16,10 @@ function Workspace() {
   return (
     <main className="mx-auto box-content min-h-[70vh] max-w-6xl px-6 py-12">
       <section>
-        <h1 className="text-2xl font-semibold">Request router</h1>
+        <p className="text-xs font-semibold tracking-widest text-primary uppercase">
+          Front desk tools
+        </p>
+        <h1 className="mt-1 font-display text-4xl font-medium tracking-tight">Request router</h1>
         <GuestMessageTester />
       </section>
     </main>

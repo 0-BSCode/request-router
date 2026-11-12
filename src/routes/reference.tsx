@@ -16,7 +16,12 @@ function Reference() {
   return (
     <main className="mx-auto min-h-[70vh] max-w-3xl px-4 py-12">
       <section>
-        <h1 className="text-2xl font-semibold">Mock API reference</h1>
+        <p className="text-xs font-semibold tracking-widest text-primary uppercase">
+          Front desk tools
+        </p>
+        <h1 className="mt-1 font-display text-4xl font-medium tracking-tight">
+          Mock API reference
+        </h1>
         <MockApiReference />
       </section>
     </main>
