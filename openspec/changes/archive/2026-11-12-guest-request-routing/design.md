@@ -38,7 +38,7 @@ Unsupported or uncertain language, empty actionable extraction, or extraction fa
 
 ### Small mock HTTP APIs
 
-Add `POST /api/mock/tasks` and `POST /api/mock/messages` in the existing server. Server orchestration calls them over HTTP using a base derived from the incoming server request, not a client-supplied API URL. Each mock requires a server-configured bearer sandbox credential (`MOCK_API_KEY`), validates its body, and returns 201 with a generated ID. Invalid input returns 400; missing or wrong credentials return 401. Document that these are local assessment mocks, not production services.
+Add `POST /api/mock/tasks` and `POST /api/mock/messages` in the existing server. Server orchestration calls them over HTTP using a base derived from the incoming server request, not a client-supplied API URL. Each mock requires a server-configured bearer sandbox credential (`MOCK_API_KEY`), validates its body, and returns 201 with a generated ID. Invalid input returns 400; missing or wrong credentials return 401. Document that these are local demo mocks, not production services.
 
 Task payload: `{messageId, channel, sender, type, details, sourceText, originalMessage, room, department, needsReview, reviewReason}`. Message payload: `{messageId, channel, recipient, text}`. Use a five-second timeout per mock call. Collect task outcomes in request order, continuing after failure, then attempt one acknowledgement. Successful mock responses are stateless simulated acceptance, not durable work or real delivery. Return the payloads in the processing response for inspection rather than building task-list endpoints or storage.
 
@@ -63,7 +63,7 @@ Add representative fixture messages with stable IDs and expected semantic outcom
 ## Risks / Trade-offs
 
 - LLM extraction can be wrong despite valid JSON. Preserve evidence and original text, use conservative review routing, and manually evaluate the configured model on multilingual fixtures.
-- Guest text reaches OpenRouter and its selected provider. Use synthetic messages for this assessment; document that real-guest use requires a separate data-handling decision.
+- Guest text reaches OpenRouter and its selected provider. Use synthetic messages for this demo; document that real-guest use requires a separate data-handling decision.
 - Template translations need language review. Include readable localized examples and record any unreviewed wording in the README.
 - Stateless mocks lose results on reload and do not provide exactly-once delivery. Label them clearly and document duplicate submissions rather than adding persistence.
 - The processing endpoint can spend API credit. Require the existing authenticated session before processing. Run this tester locally; public deployment still requires registration/access policy and abuse controls beyond this change.
@@ -71,4 +71,4 @@ Add representative fixture messages with stable IDs and expected semantic outcom
 
 ## Migration Plan
 
-No new data migration is needed for routing. Retain the existing authentication database setup and migrations. Add server environment configuration, run the project checks, and start the existing application. Roll back by reverting the change and removing the new environment values. Do not change repository visibility, deploy publicly, start the assessment timer, or submit the repository as part of implementation.
+No new data migration is needed for routing. Retain the existing authentication database setup and migrations. Add server environment configuration, run the project checks, and start the existing application. Roll back by reverting the change and removing the new environment values. Do not change repository visibility or deploy publicly as part of implementation.

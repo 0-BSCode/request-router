@@ -39,4 +39,4 @@
 
 - [x] 6.1 Run the repository-required install/setup and route generation, then formatting/lint/type checks, tests, and production build using the project scripts; verify all pass and review the resulting diff for unrelated changes.
 - [x] 6.2 With configured OpenRouter credentials, run synthetic samples covering all supported languages, multi-request splitting, and review through the signed-in workspace and mock HTTP endpoints; record the model, results, and any language-review limitations, or explicitly report unavailable credentials as an unperformed live check.
-- [x] 6.3 Finish README decisions, tradeoffs, next steps, and AI-tool disclosure; verify they accurately describe the delivered implementation and remaining limitations without changing repository visibility or submitting the assessment.
+- [x] 6.3 Finish README decisions, tradeoffs, next steps, and AI-tool disclosure; verify they accurately describe the delivered implementation and remaining limitations without changing repository visibility.

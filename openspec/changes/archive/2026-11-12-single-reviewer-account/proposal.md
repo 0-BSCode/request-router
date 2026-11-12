@@ -2,7 +2,7 @@
 
 ## Why
 
-The assessment demo needs one shared reviewer login, while the current starter allows anyone to register. Reuse Cally's single-account setup so the owner can privately share credentials and redeploy without recreating the account.
+The demo needs one shared reviewer login, while the current starter allows anyone to register. Reuse Cally's single-account setup so the owner can privately share credentials and redeploy without recreating the account.
 
 ## What Changes
 

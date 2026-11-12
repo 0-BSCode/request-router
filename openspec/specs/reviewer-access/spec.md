@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Provide one privately configured reviewer account for the assessment demo, with repeatable startup and no public registration.
+Provide one privately configured reviewer account for the demo, with repeatable startup and no public registration.
 
 ## Requirements
 

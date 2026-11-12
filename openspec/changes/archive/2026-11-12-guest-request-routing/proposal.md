@@ -35,4 +35,4 @@ None. No existing specifications are present.
 - Add local mock HTTP API contracts for Tasks and Messaging; no real guest messages are sent.
 - Reuse the existing Better Auth session and PostgreSQL foundation without changing account or database behavior.
 - Add fixtures and focused Vitest coverage; update README and environment examples without publishing credentials.
-- Repository visibility and submission remain separate from implementation. The repository is private although the assessment requires a public submission.
+- Repository visibility and deployment remain separate from implementation.

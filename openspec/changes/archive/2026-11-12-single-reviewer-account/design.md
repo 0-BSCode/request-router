@@ -48,7 +48,7 @@ Document owner settings for native development, Compose, and Coolify. Compose sh
 
 ## Risks / Trade-offs
 
-- Shared credentials cannot identify individual reviewers. This is accepted for the assessment; sessions remain independent.
+- Shared credentials cannot identify individual reviewers. This is accepted for the demo; sessions remain independent.
 - An existing local database may have registered test accounts. Bootstrap deliberately stops; use a fresh database or explicitly resolve account state without automatic deletion.
 - Changing `OWNER_PASSWORD` does not rotate the stored password. Document the limitation and keep the credential in a password manager; no reset tooling is introduced here.
 - Changing or omitting `OWNER_EMAIL` denies access and fails supported startup. Keep the configured email consistent across deployments.
