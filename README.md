@@ -1,16 +1,16 @@
 # Guest request router
 
-A starter for the Visayas Bay Resort guest request router assessment, adapted from the local `boilerplate-brewery/thread` project.
+A working implementation of the Visayas Bay Resort guest request router assessment.
 
 ## Current status
 
 The application includes email/password authentication backed by PostgreSQL and a protected guest-message tester at `/`. The server extracts multilingual requests through OpenRouter, routes them to three departments through mock Tasks APIs, and sends outcome-based template replies through a mock Messaging API. Task and message results are simulated and not stored.
 
-The assessment brief is preserved in `INSTRUCTIONS.md`. Planning files remain in `openspec/`. Adapting this starter does not start the assessment timer or publish or submit a repository.
+The original brief is preserved in `INSTRUCTIONS.md`. Planning files remain in `openspec/` as project history.
 
 ## Run locally
 
-Use Node.js 22 or later, pnpm 12.3.4, and PostgreSQL 17. Copy `.env.example` to `.env.local`, set `DATABASE_URL` to a dedicated database, and set `BETTER_AUTH_SECRET` to a random secret of at least 32 characters. Set `OWNER_EMAIL` and an initial `OWNER_PASSWORD` of 8 to 128 characters. Keep credentials out of Git.
+Use Node.js 22 or later, pnpm 12.3.4, and PostgreSQL 17. Copy `.env.example` to `.env.local`, set `DATABASE_URL` to a dedicated database, and set `BETTER_AUTH_SECRET` to a random secret of at least 32 characters. Set `OWNER_EMAIL` and an initial `OWNER_PASSWORD` of 8 to 128 characters. To process messages, also set `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, and `MOCK_API_KEY`. Keep credentials out of Git.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -58,16 +58,16 @@ These cover initialization, concurrency, safe failures, credential preservation,
 ## What was reused
 
 - TanStack Start and Router, React, TypeScript, and TanStack Query.
-- Tailwind CSS and the starter's shared UI components.
+- Tailwind CSS and shared UI components.
 - Vite+ formatting, linting, type checking, Vitest, and GitHub checks.
 - The SEO helper and its existing test.
 - Better Auth, Drizzle/Postgres, authentication pages, and database commands.
 
-The resume site, chatbot, demos, and content collections were excluded. The restored [Coolify setup helper](docs/deployment.md) creates resources without deploying by default. Server endpoints can be added under `src/routes/` alongside the UI without introducing a separate backend. The template's dependency versions and lockfile are retained where applicable.
+The resume site, chatbot, demos, and content collections were excluded. The [Coolify setup helper](docs/deployment.md) creates resources without deploying by default. Server endpoints can be added under `src/routes/` alongside the UI without introducing a separate backend. The dependency versions and lockfile are retained where applicable.
 
 ## AI use
 
-OpenAI Codex inspected the source starter and assessment brief, selected and adapted the reusable files, removed unrelated dependencies, and ran validation. Codex subsequently restored Thread's authentication and database code, generated the auth-only migration, and added a database-backed authentication test. Codex also planned and implemented the guest routing flow, multilingual acknowledgement templates, mock APIs, synthetic samples, focused tests, and the protected tester UI. Codex subsequently normalized department summaries to English, added actual detected-language metadata, rewrote guest templates, and verified the changes with isolated deterministic tests and synthetic live OpenRouter cases. Fluent-speaker review of the revised templates remains outstanding.
+OpenAI Codex inspected the source project and assessment brief, selected and adapted the reusable files, removed unrelated dependencies, and ran validation. Codex subsequently restored Thread's authentication and database code, generated the auth-only migration, and added a database-backed authentication test. Codex also planned and implemented the guest routing flow, multilingual acknowledgement templates, mock APIs, synthetic samples, focused tests, and the protected tester UI. Codex subsequently normalized department summaries to English, added actual detected-language metadata, rewrote guest templates, and verified the changes with isolated deterministic tests and synthetic live OpenRouter cases. Fluent-speaker review of the revised templates remains outstanding.
 
 Anthropic's Claude Code (Claude Opus 5.5) revised the OpenSpec plan for the mock API reference, changing in-page tabs to a separate page at the author's direction, and implemented it: the synthetic examples and their schema-validation tests, the collapsible `MockApiReference` component, the protected `/reference` route, navigation-bar links with an active-page indicator, route access tests, and README updates. It ran formatting, lint, type checks, tests, and the production build in an isolated copy without local env files, then synced the spec and archived the change. The author directed these changes, chose the design options, and performed the browser checks; Claude Code did not run a browser.
 
