@@ -7,7 +7,7 @@ import { samples } from "./samples";
 afterEach(() => vi.unstubAllGlobals());
 const cases: [
   string,
-  Extraction["language"],
+  Extraction["detectedLanguage"],
   [ExtractedRequest["type"], string | null, string][],
 ][] = [
   ["towels-en", "en", [["towels", "204", "Two towels"]]],
@@ -57,12 +57,12 @@ const cases: [
     ],
   ],
   ["repeat", "en", [["towels", "204", "Two towels"]]],
-  ["unsupported", "unsupported", []],
+  ["unsupported", "fr", []],
 ];
 
 test.each(cases)(
   "validates representative extraction and routes fixture %s",
-  async (id, language, items) => {
+  async (id, detectedLanguage, items) => {
     const sample = samples.find((s) => s.messageId === id)!;
     const requests = items.map(([type, room, details]) => ({
       type,
@@ -79,15 +79,16 @@ test.each(cases)(
           choices: [
             {
               finish_reason: "stop",
-              message: { content: JSON.stringify({ language, requests }) },
+              message: { content: JSON.stringify({ detectedLanguage, requests }) },
             },
           ],
         }),
       ),
     );
     const extracted = await extractRequests(sample.text, { key: "test", model: "test" });
-    expect(extracted.language).toBe(language);
+    expect(extracted.detectedLanguage).toBe(detectedLanguage);
     const tasks = routeRequests(sample, extracted);
+    expect(tasks.every((task) => task.detectedLanguage === detectedLanguage)).toBe(true);
     expect(tasks.map((t) => t.department)).toEqual(
       id === "unsupported"
         ? ["front_desk"]
@@ -113,11 +114,16 @@ test.each(cases)(
 
 test.each([
   [null, "extraction_failure"],
-  [{ language: "unknown", requests: [] }, "uncertain_language"],
-  [{ language: "en", requests: [] }, "no_actionable_request"],
+  [{ detectedLanguage: "fr", requests: [] }, "unsupported_language"],
+  [{ detectedLanguage: "unknown", requests: [] }, "uncertain_language"],
+  [{ detectedLanguage: "en", requests: [] }, "no_actionable_request"],
 ] as const)("whole-message review retains source and reason", (value, reason) => {
   const extraction = value ? extractionSchema.parse(value) : null;
-  expect(routeRequests(samples[0], extraction)).toMatchObject([
+  const tasks = routeRequests(samples[0], extraction);
+  expect(tasks[0].details).toMatch(/^Review the guest message\./);
+  expect(tasks[0].details).not.toBe(samples[0].text);
+  expect(tasks[0].detectedLanguage).toBe(extraction?.detectedLanguage ?? "unknown");
+  expect(tasks).toMatchObject([
     {
       department: "front_desk",
       needsReview: true,

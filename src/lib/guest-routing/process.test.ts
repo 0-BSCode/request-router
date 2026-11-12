@@ -15,7 +15,7 @@ const input = {
   text: "Room 204: two towels",
 };
 const extraction = {
-  language: "en",
+  detectedLanguage: "en",
   requests: [
     {
       type: "towels",
@@ -75,7 +75,7 @@ test("creates a housekeeping task through the mock and returns its receipt", asy
 test("sends an English template after task creation without claiming service completion", async () => {
   const result = await (await processMessage(request())).json();
   expect(result.acknowledgement).toMatchObject({ status: "sent", deliveryId: expect.any(String) });
-  expect(result.acknowledgement.text).toContain("passed these requests");
+  expect(result.acknowledgement.text).toContain("your towel request for room 204 to housekeeping");
   expect(result.acknowledgement.text).not.toMatch(/delivered|approved/);
   const calls = vi.mocked(fetch).mock.calls;
   expect(requestUrl(calls[1][0])).toContain("/api/mock/tasks");
@@ -109,7 +109,7 @@ test.each(["error", "timeout", "invalid output"])(
       },
     ]);
     expect(JSON.stringify(result)).not.toMatch(/secret-test|mock-test|secret-provider-body/);
-    expect(result.acknowledgement.text).not.toContain("clarify the room");
+    expect(result.acknowledgement.text).not.toContain("Which room");
   },
 );
 
@@ -159,7 +159,7 @@ test.each(["partial", "total", "timeout", "invalid receipt", "delivery"])(
           : ["failed", "failed"],
     );
     expect(result.acknowledgement.status).toBe(failure === "delivery" ? "failed" : "sent");
-    if (failure !== "delivery") expect(result.acknowledgement.text).toContain("could not record");
+    if (failure !== "delivery") expect(result.acknowledgement.text).toContain("couldn't pass on");
     expect(JSON.stringify(result)).not.toContain("sensitive");
   },
 );
@@ -270,3 +270,32 @@ test("ignores forged forwarding headers and rejects cross-origin callers behind 
   }
   expect(fetch).not.toHaveBeenCalled();
 });
+
+test.each(["fil", "ceb", "mixed", "fr", "unknown"])(
+  "propagates %s detection through actual mock payloads",
+  async (detectedLanguage) => {
+    const originalFetch = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (url, init) => {
+      if (requestUrl(url).startsWith("https://openrouter.ai/"))
+        return Response.json({
+          choices: [
+            {
+              finish_reason: "stop",
+              message: { content: JSON.stringify({ ...extraction, detectedLanguage }) },
+            },
+          ],
+        });
+      return originalFetch(url, init);
+    });
+    const result = processingResultSchema.parse(await (await processMessage(request())).json());
+    expect(result.tasks[0].task.detectedLanguage).toBe(detectedLanguage);
+    expect(result.tasks[0].status).toBe("created");
+    expect(result.tasks[0].task.department).toBe(
+      ["fr", "unknown"].includes(detectedLanguage) ? "front_desk" : "housekeeping",
+    );
+    expect(result.extractionStatus).toBe(
+      ["fr", "unknown"].includes(detectedLanguage) ? "review" : "extracted",
+    );
+    expect(result.acknowledgement.status).toBe("sent");
+  },
+);

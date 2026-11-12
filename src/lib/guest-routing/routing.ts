@@ -1,3 +1,4 @@
+import { isSupportedLanguage } from "./languages";
 import type { Extraction, GuestMessage, Task } from "./contracts";
 
 export const departments = {
@@ -8,19 +9,28 @@ export const departments = {
   unknown: "front_desk",
 } as const;
 
+const reviewDetails = {
+  extraction_failure: "Review the guest message. Automatic extraction failed.",
+  unsupported_language:
+    "Review the guest message. Its detected language is not supported for automatic routing.",
+  uncertain_language: "Review the guest message. Its language could not be identified reliably.",
+  no_actionable_request: "Review the guest message. No actionable request was identified.",
+};
+
 export function routeRequests(message: GuestMessage, extraction: Extraction | null): Task[] {
   const base = {
     messageId: message.messageId,
     channel: message.channel,
     sender: message.sender,
     originalMessage: message.text,
+    detectedLanguage: extraction?.detectedLanguage ?? "unknown",
   };
   const wholeReason = !extraction
     ? "extraction_failure"
-    : extraction.language === "unsupported"
-      ? "unsupported_language"
-      : extraction.language === "unknown"
-        ? "uncertain_language"
+    : extraction.detectedLanguage === "unknown"
+      ? "uncertain_language"
+      : !isSupportedLanguage(extraction.detectedLanguage)
+        ? "unsupported_language"
         : !extraction.requests.length
           ? "no_actionable_request"
           : null;
@@ -29,7 +39,7 @@ export function routeRequests(message: GuestMessage, extraction: Extraction | nu
       {
         ...base,
         type: "unknown",
-        details: message.text,
+        details: reviewDetails[wholeReason],
         sourceText: message.text,
         room: null,
         department: "front_desk",

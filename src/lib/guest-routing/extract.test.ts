@@ -9,7 +9,7 @@ export const towelItem = {
   roomSourceText: "Room 204",
   roomStatus: "known",
 };
-export const towelExtraction = { language: "en", requests: [towelItem] };
+export const towelExtraction = { detectedLanguage: "en", requests: [towelItem] };
 export function completion(data: unknown = towelExtraction) {
   return { choices: [{ finish_reason: "stop", message: { content: JSON.stringify(data) } }] };
 }
@@ -21,6 +21,7 @@ test("sends configured model, structured schema, guest data, and bounded signal"
   expect(
     await extractRequests("Room 204: two towels", { key: "test-secret", model: "test/model" }),
   ).toEqual(towelExtraction);
+  expect(mock).toHaveBeenCalledTimes(1);
   const [url, init] = mock.mock.calls[0];
   expect(url).toBe("https://openrouter.ai/api/v1/chat/completions");
   const body = JSON.parse(init.body);
@@ -59,7 +60,10 @@ test.each([
     "bad shape",
     () =>
       Response.json(
-        completion({ language: "en", requests: [{ ...towelItem, department: "concierge" }] }),
+        completion({
+          detectedLanguage: "en",
+          requests: [{ ...towelItem, department: "concierge" }],
+        }),
       ),
   ],
   [

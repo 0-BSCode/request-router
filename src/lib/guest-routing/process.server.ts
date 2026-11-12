@@ -9,6 +9,7 @@ import {
   type TaskAttempt,
 } from "./contracts";
 import { ExtractionError, extractRequests } from "./extract.server";
+import { isSupportedLanguage } from "./languages";
 import { routeRequests } from "./routing";
 import { renderAcknowledgement } from "./templates";
 
@@ -86,7 +87,7 @@ export async function processMessage(request: Request): Promise<Response> {
         });
       }
     }
-    const text = renderAcknowledgement(extraction?.language ?? "unknown", tasks);
+    const text = renderAcknowledgement(extraction?.detectedLanguage ?? "unknown", tasks);
     let acknowledgement: ProcessingResult["acknowledgement"];
     try {
       const { deliveryId } = await postMock(
@@ -108,7 +109,7 @@ export async function processMessage(request: Request): Promise<Response> {
       messageId: message.messageId,
       extractionStatus: !extraction
         ? "failed"
-        : ["unsupported", "unknown"].includes(extraction.language) || !extraction.requests.length
+        : !isSupportedLanguage(extraction.detectedLanguage) || !extraction.requests.length
           ? "review"
           : "extracted",
       ...(extractionError ? { extractionError } : {}),

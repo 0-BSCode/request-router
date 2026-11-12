@@ -10,6 +10,7 @@ const task = {
   details: "Two towels",
   sourceText: "Two towels",
   originalMessage: "Room 204: Two towels",
+  detectedLanguage: "en",
   room: "204",
   department: "housekeeping",
   needsReview: false,
@@ -51,4 +52,18 @@ test.each([
   ).toBe(400);
   vi.stubEnv("MOCK_API_KEY", "");
   expect((await handler(request(payload))).status).toBe(503);
+});
+
+test("task API requires validated detected-language metadata", async () => {
+  vi.stubEnv("MOCK_API_KEY", "sandbox-test");
+  for (const detectedLanguage of [undefined, "unsupported", "French"]) {
+    const response = await createMockTask(
+      new Request("http://localhost/api/mock/tasks", {
+        method: "POST",
+        headers: { authorization: "Bearer sandbox-test", "content-type": "application/json" },
+        body: JSON.stringify({ ...task, detectedLanguage }),
+      }),
+    );
+    expect(response.status).toBe(400);
+  }
 });

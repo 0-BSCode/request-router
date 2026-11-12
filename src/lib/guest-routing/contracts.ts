@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { detectedLanguageSchema } from "./languages";
 
 export const channelSchema = z.enum(["whatsapp", "email"]);
 export const requestTypeSchema = z.enum([
@@ -38,7 +39,7 @@ export const extractedRequestSchema = z
 
 export const extractionSchema = z.strictObject({
   // A supported-language mixture with no dominant language uses English replies.
-  language: z.enum(["en", "fil", "ceb", "mixed", "unsupported", "unknown"]),
+  detectedLanguage: detectedLanguageSchema,
   requests: z.array(extractedRequestSchema),
 });
 
@@ -61,6 +62,7 @@ export const taskSchema = z
     details: messageText,
     sourceText: messageText,
     originalMessage: messageText,
+    detectedLanguage: detectedLanguageSchema,
     room: z.string().min(1).max(40).nullable(),
     department: departmentSchema,
     needsReview: z.boolean(),
