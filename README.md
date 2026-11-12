@@ -67,7 +67,7 @@ The resume site, chatbot, demos, and content collections were excluded. The rest
 
 ## AI use
 
-OpenAI Codex inspected the source starter and assessment brief, selected and adapted the reusable files, removed unrelated dependencies, and ran validation. Codex subsequently restored Thread's authentication and database code, generated the auth-only migration, and added a database-backed authentication test. Codex also planned and implemented the guest routing flow, multilingual acknowledgement templates, mock APIs, synthetic samples, focused tests, and the protected tester UI. Automated model responses and a temporary local test setup were used for deterministic verification; no live-model accuracy evaluation has been performed.
+OpenAI Codex inspected the source starter and assessment brief, selected and adapted the reusable files, removed unrelated dependencies, and ran validation. Codex subsequently restored Thread's authentication and database code, generated the auth-only migration, and added a database-backed authentication test. Codex also planned and implemented the guest routing flow, multilingual acknowledgement templates, mock APIs, synthetic samples, focused tests, and the protected tester UI. Codex subsequently normalized department summaries to English, added actual detected-language metadata, rewrote guest templates, and verified the changes with isolated deterministic tests and synthetic live OpenRouter cases. Fluent-speaker review of the revised templates remains outstanding.
 
 ## Routing API contracts
 
@@ -75,7 +75,7 @@ The routing tester uses synthetic senders `+15550100204` for WhatsApp and `guest
 
 Set `MOCK_API_KEY` in `.env.local` to a nonempty sandbox secret. Keep it on the server. Both mock endpoints require `Authorization: Bearer <MOCK_API_KEY>` and JSON bodies, return 201 on acceptance, 400 for invalid input, 401 for incorrect credentials, or 503 for missing configuration.
 
-- `POST /api/mock/tasks` accepts `{messageId, channel, sender, type, details, sourceText, originalMessage, room, department, needsReview, reviewReason}` and returns `{taskId}`. Rooms are strings or null; review reasons are strings or null. A review task must target front desk with a review reason. Normal tasks require a known type and room.
+- `POST /api/mock/tasks` accepts `{messageId, channel, sender, type, details, sourceText, originalMessage, detectedLanguage, room, department, needsReview, reviewReason}` and returns `{taskId}`. Rooms are strings or null; review reasons are strings or null. A review task must target front desk with a review reason. Normal tasks require a known type and room. `detectedLanguage` is required and validated on every task; older payloads without it are rejected.
 - `POST /api/mock/messages` accepts `{messageId, channel, recipient, text}` and returns `{deliveryId}`.
 
 The shared schemas in `src/lib/guest-routing/contracts.ts` define allowed values and bounds. These APIs are assessment mocks, not production task or messaging services. `.env` and `.env.local` are ignored; `.env.example` contains names and blank routing secrets only.
@@ -106,13 +106,26 @@ The response contains `messageId`, `extractionStatus` (`extracted`, `review`, or
 
 ## Understanding and acknowledgements
 
-English, Filipino, and Cebuano are supported, including mixtures within that set. The LLM selects a dominant language; evenly mixed supported-language messages use English templates but still route normally. Unsupported or uncertain languages go to whole-message front-desk review with English replies. A schema-valid result is not proof of semantic accuracy, so original text and verbatim evidence are retained.
+The single extraction call writes concise English department summaries, preserving intent, quantities, and timing, and returns `detectedLanguage`. Every task carries this message-level value. Codes `en`, `fil`, and `ceb` identify English, Filipino, and Cebuano; an actual unsupported code such as `fr` retains French detection. Supported-language mixtures use the dominant code, or `mixed` if evenly mixed. `unknown` means detection is uncertain or extraction failed. Codes are lowercase two- or three-letter values, plus `mixed` and `unknown`. Routing support is derived in code, not stored as a separate flag.
+
+English, Filipino, Cebuano, and their supported mixtures route normally. Other languages and unknown detection go to whole-message front-desk review with English replies. Fallback task summaries are fixed English explanations of the review reason, with the original message attached unchanged. English summaries are LLM estimates; schema validation cannot establish their translation accuracy. Source evidence remains verbatim.
 
 See `departments.md` for the three departments, fixed category mapping, splitting rules, and review reasons. For example, `multi-en` creates towels and late-checkout tasks for one room; `same-department` creates two front-desk tasks; `repeat` represents only one towel request; `separate-rooms` keeps each room assignment. `unknown` retains the known request and reviews the unknown portion. `missing` and `ambiguous` ask for the room. Expected results are recorded beside each synthetic sample in `messages.jsonl`.
 
-Acknowledgements use English, Filipino, or Cebuano templates after task attempts finish. They confirm only recorded work, distinguish front-desk review from normal routing, request room clarification where needed, and report recording failures. Late checkout is acknowledged as a request, never approved. No second LLM call writes the reply. Template translations have not been reviewed by a language specialist.
+Acknowledgements use short English, Filipino, or Cebuano sentence templates after task attempts finish. Each request outcome has its own paragraph in request order, with rooms written naturally. The reply confirms only recorded work, distinguishes review from normal routing, asks a direct room question beside the unresolved request, and separately explains failures. Late checkout is acknowledged as a request, never approved. No second LLM call writes the reply, and English department summaries are never inserted into localized guest replies. Revised template wording has been checked for internal consistency, but fluent Filipino/Cebuano review remains outstanding.
 
 For a live-model evaluation, load each sample in the signed-in workspace, compare task counts/types/rooms/details with its `expected` field, check the template language and review reasons, and record the configured model and date. Include all supported languages, mixed language, multi-request splitting, missing/ambiguous rooms, and an unknown request. Automated tests use controlled model responses to test validation and routing; they do not measure a real model's language understanding.
+
+### Guest reply examples
+
+The former format looked like `towels [204] (housekeeping); late checkout [204] (front desk)`. Updated English examples:
+
+- Successful forwarding: "We've passed your towel request for room 204 to housekeeping."
+- Successful review: "We've passed your message to the front desk for review."
+- Missing room: "We've passed your towel request to the front desk for review. Which room is this request for?"
+- Partial failure: "We've passed your towel request for room 204 to housekeeping." followed by "We couldn't pass on your late checkout request for room 204." and "Please contact the front desk for help with any request we couldn't pass on."
+
+Each request outcome is a separate paragraph; help guidance appears once if anything failed. No reply confirms approval or completion. Quantities and timing stay in staff summaries; guest templates use localized request phrases and known rooms rather than repeating model-generated details.
 
 ## Failures and limits
 
@@ -125,7 +138,7 @@ This is a local reviewer tester. It has no durable task/message history, rollbac
 1. Start the app with its database/auth environment and the three routing values set. Sign in and open `/`.
 2. Choose a sample or edit the guest message. Select WhatsApp or email. The room belongs in the text, not a separate field; the UI supplies a fresh message ID and a synthetic sender.
 3. Click Process message. The form is disabled while processing; loading a sample alone never submits it.
-4. Inspect each task's department, room, details, source evidence, ID, review reason, and created/failed status. Read the exact acknowledgement and its separate sent/failed status. Mock badges mean no actual service was scheduled or message delivered.
+4. Inspect each task's English summary, guest language and derived support label, department, room, source evidence, ID, review reason, and created/failed status. Read the exact acknowledgement and its separate sent/failed status. Mock badges mean no actual service was scheduled or message delivered.
 5. If the session expires, use Sign in again. If a request fails before a result is received, check before resubmitting because partial work might already have happened.
 
 Only the most recent submission is displayed. Editing the form does not alter an existing result, which retains its submitted message; a new submission clears it. There is no task-management screen, model selector, or history.
@@ -134,6 +147,10 @@ Only the most recent submission is displayed. Editing the form does not alter an
 
 Verified on November 12, 2026: formatting, lint, type checks, deterministic routing tests, production build, and the existing database-backed auth test against an isolated disposable database. Browser checks used the production build with a temporary controlled OpenRouter response source outside the repository, while actual local mock HTTP endpoints and real auth sessions were exercised. Checks covered editable samples, loading state, keyboard submission, multi-request routing, missing-room review, English/Filipino/Cebuano templates, partial task failure, blank input, and session expiry. No production fault-injection control is included.
 
-Live OpenRouter evaluation was not performed because no real OpenRouter credentials/model were configured. Controlled responses verify application behavior, not real model accuracy. Before relying on the result, configure a compatible model and run the sample checklist above. Next steps are a live multilingual evaluation, language review of the templates, and, if this grows beyond an assessment, durable task storage and deduplication, guest-channel integration, and deployment access/abuse controls.
+Notification updates were verified on November 12, 2026 in an isolated source copy with no local env files. Formatting/lint/type checks, the production build, and 108 source tests passed; 10 opt-in database tests were skipped. The unchanged navigation suite covers root authorization, sign-in, and legacy redirects. Browser checks used a disposable reviewer database and covered English staff summaries with Filipino guest copy, French/unsupported metadata and English review, different rooms, and a controlled partial task failure. Controlled failures were injected only by a temporary test-process hook outside the repository.
+
+Six synthetic live acceptance cases passed using `openai/gpt-6-luna`: Filipino late checkout, Cebuano tour, supported mixed-language requests, French fallback, multiple requests, and a missing room. Checks inspected English summary meaning, quantities/timing where applicable, actual detected-language codes, routing policy, and guest acknowledgement wording. Final Filipino and Cebuano room phrasing was also checked through the browser after a copy edit. The test instance reused existing runtime OpenRouter configuration in memory; local env files, the running app, and its reviewer data were not changed. This finite test set does not establish accuracy for arbitrary input. Fluent Filipino/Cebuano review remains outstanding.
+
+Next steps are broader held-out model evaluation and fluent-speaker review, and, if this grows beyond an assessment, durable task storage and deduplication, guest-channel integration, and deployment access/abuse controls.
 
 To verify local/deployment quoting with temporary dummy credentials, run `node scripts/env-format.test.mjs`. This requires Docker and does not read local env files.
