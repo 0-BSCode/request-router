@@ -14,9 +14,9 @@ export const Route = createFileRoute("/")({
 
 function Workspace() {
   return (
-    <main className="mx-auto min-h-[70vh] max-w-3xl px-4 py-12">
+    <main className="mx-auto box-content min-h-[70vh] max-w-6xl px-6 py-12">
       <section>
-        <h1 className="text-2xl font-semibold">Guest request workspace</h1>
+        <h1 className="text-2xl font-semibold">Request router</h1>
         <GuestMessageTester />
       </section>
     </main>

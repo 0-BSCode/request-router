@@ -17,10 +17,10 @@ export default function Header() {
     <header className="border-b px-6 py-4">
       <nav
         aria-label="Main navigation"
-        className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-6 gap-y-3"
+        className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-3"
       >
         <Link to="/" activeOptions={{ exact: true }} className="font-semibold">
-          Guest request router
+          Visayas Beach Resort
         </Link>
         {/* Display only: route beforeLoad checks enforce access. */}
         {session?.user && (
