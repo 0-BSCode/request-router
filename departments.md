@@ -8,7 +8,7 @@
 | Tour            | Concierge                |
 | Unknown request | Front desk, needs review |
 
-These three departments are assumptions from the brief, not supplied resort policy. Routing is fixed in application code; the LLM extracts request types and cannot choose departments.
+These three departments are working assumptions, not supplied resort policy. Routing is fixed in application code; the LLM extracts request types and cannot choose departments.
 
 A known request with a missing or ambiguous room also becomes a front-desk review task with a null room and a clarification reply. Unknown requests preserve a clear room if one was supplied. Known portions of a message still route normally when another portion needs review. If more than one issue applies to an item, missing/ambiguous room takes precedence as the review reason, and its original type/details are retained.
 
