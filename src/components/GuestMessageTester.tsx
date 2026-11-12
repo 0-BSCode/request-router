@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { Tabs } from "radix-ui";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "#/components/ui/card";
@@ -35,6 +36,13 @@ const reviewLabels = {
   uncertain_language: "Uncertain language",
   no_actionable_request: "No actionable request identified",
 };
+
+const tabClass =
+  "text-muted-foreground data-[state=active]:border-foreground data-[state=active]:text-foreground focus-visible:ring-ring -mb-px border-b-2 border-transparent px-3 py-2 text-sm font-medium outline-none focus-visible:ring-2";
+const chipClass =
+  "text-muted-foreground hover:text-foreground data-[state=active]:border-foreground data-[state=active]:bg-accent data-[state=active]:text-foreground focus-visible:ring-ring inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm outline-none focus-visible:ring-2";
+const formatType = (type: string) =>
+  type.charAt(0).toUpperCase() + type.slice(1).replaceAll("_", " ");
 
 export function GuestMessageTester() {
   const [sampleId, setSampleId] = useState(samples[0].messageId);
@@ -89,8 +97,8 @@ export function GuestMessageTester() {
   }
 
   return (
-    <div className="mt-6 space-y-6">
-      <Card>
+    <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
+      <Card className="lg:sticky lg:top-6">
         <CardHeader>
           <CardTitle>Test a guest message</CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -100,7 +108,7 @@ export function GuestMessageTester() {
         </CardHeader>
         <CardContent>
           <form onSubmit={submit} noValidate className="space-y-5">
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
               <div className="space-y-2">
                 <Label htmlFor="sample">Sample message</Label>
                 <Select
@@ -167,7 +175,7 @@ export function GuestMessageTester() {
               {pending
                 ? "Understanding the message and recording mock outcomes…"
                 : result
-                  ? "Processing complete. Review each outcome below."
+                  ? "Processing complete. Review each outcome in the results."
                   : ""}
             </p>
             {error && (
@@ -183,79 +191,131 @@ export function GuestMessageTester() {
           </form>
         </CardContent>
       </Card>
-      {result && (
-        <section aria-label="Processing results" className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold">Results for this submission</h3>
-            <p className="text-xs text-muted-foreground">Message {result.messageId}</p>
-            <p className="mt-2 whitespace-pre-wrap">{submittedText}</p>
-          </div>
-          {result.extractionError && (
-            <p role="alert" className="text-sm text-destructive">
-              {result.extractionError}
-            </p>
-          )}
-          <h4 className="font-semibold">
-            Task attempts <Badge variant="outline">Mock Tasks API</Badge>
-          </h4>
-          {result.tasks.map((attempt, index) => (
-            <Card key={`${result.messageId}-${index}`}>
-              <CardHeader>
-                <CardTitle className="flex flex-wrap items-center gap-2 text-base">
-                  {departmentLabels[attempt.task.department]}
-                  <Badge variant={attempt.status === "failed" ? "destructive" : "secondary"}>
-                    {attempt.status === "created" ? "Created" : "Failed"}
-                  </Badge>
-                  {attempt.task.needsReview && <Badge variant="outline">Needs review</Badge>}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <p className="whitespace-pre-wrap">{attempt.task.details}</p>
-                <p>
-                  Guest language: {getLanguageLabel(attempt.task.detectedLanguage)} ·{" "}
-                  {getLanguageSupportLabel(attempt.task.detectedLanguage)}
-                </p>
-                <p>
-                  Type: {attempt.task.type.replaceAll("_", " ")} · Room:{" "}
-                  {attempt.task.room ?? "Unknown"}
-                </p>
-                {attempt.task.reviewReason && <p>{reviewLabels[attempt.task.reviewReason]}</p>}
-                <details>
-                  <summary className="cursor-pointer">Original supporting text</summary>
-                  <p className="mt-2 whitespace-pre-wrap">{attempt.task.sourceText}</p>
-                </details>
-                {attempt.status === "created" ? (
-                  <p className="text-xs text-muted-foreground">Task {attempt.taskId}</p>
+      <section aria-label="Processing results" className="min-w-0">
+        {result ? (
+          // Keyed by message so each new result opens on Tasks with the first chip selected.
+          <div key={result.messageId} className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold">Results for this submission</h2>
+              <p className="text-xs text-muted-foreground">Message {result.messageId}</p>
+              <p className="mt-2 whitespace-pre-wrap">{submittedText}</p>
+            </div>
+            {result.extractionError && (
+              <p role="alert" className="text-sm text-destructive">
+                {result.extractionError}
+              </p>
+            )}
+            <Tabs.Root defaultValue="tasks">
+              <Tabs.List aria-label="Result views" className="flex border-b">
+                <Tabs.Trigger value="tasks" className={tabClass}>
+                  Tasks ({result.tasks.length})
+                </Tabs.Trigger>
+                <Tabs.Trigger value="reply" className={tabClass}>
+                  Guest reply
+                  {result.acknowledgement.status === "failed" && (
+                    <span className="ml-1.5 text-destructive">Failed</span>
+                  )}
+                </Tabs.Trigger>
+              </Tabs.List>
+              <Tabs.Content value="tasks" className="space-y-3 pt-4">
+                <Badge variant="outline">Mock Tasks API</Badge>
+                {result.tasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No task was created.</p>
                 ) : (
-                  <p className="text-destructive">{attempt.error}</p>
+                  <Tabs.Root defaultValue="0">
+                    <Tabs.List aria-label="Task attempts" className="flex flex-wrap gap-2">
+                      {result.tasks.map((attempt, index) => (
+                        <Tabs.Trigger key={index} value={String(index)} className={chipClass}>
+                          {index + 1}. {departmentLabels[attempt.task.department]} ·{" "}
+                          {formatType(attempt.task.type)}
+                          {attempt.status === "failed" && (
+                            <span className="text-destructive">Failed</span>
+                          )}
+                          {attempt.task.needsReview && <span className="underline">Review</span>}
+                        </Tabs.Trigger>
+                      ))}
+                    </Tabs.List>
+                    {result.tasks.map((attempt, index) => (
+                      <Tabs.Content key={index} value={String(index)} className="mt-3">
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex flex-wrap items-center gap-2 text-base">
+                              {departmentLabels[attempt.task.department]}
+                              <Badge
+                                variant={attempt.status === "failed" ? "destructive" : "secondary"}
+                              >
+                                {attempt.status === "created" ? "Created" : "Failed"}
+                              </Badge>
+                              {attempt.task.needsReview && (
+                                <Badge variant="outline">Needs review</Badge>
+                              )}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-2 text-sm">
+                            <p className="whitespace-pre-wrap">{attempt.task.details}</p>
+                            <p>
+                              Guest language: {getLanguageLabel(attempt.task.detectedLanguage)} ·{" "}
+                              {getLanguageSupportLabel(attempt.task.detectedLanguage)}
+                            </p>
+                            <p>
+                              Type: {attempt.task.type.replaceAll("_", " ")} · Room:{" "}
+                              {attempt.task.room ?? "Unknown"}
+                            </p>
+                            {attempt.task.reviewReason && (
+                              <p>{reviewLabels[attempt.task.reviewReason]}</p>
+                            )}
+                            <details>
+                              <summary className="cursor-pointer">Original supporting text</summary>
+                              <p className="mt-2 whitespace-pre-wrap">{attempt.task.sourceText}</p>
+                            </details>
+                            {attempt.status === "created" ? (
+                              <p className="text-xs text-muted-foreground">Task {attempt.taskId}</p>
+                            ) : (
+                              <p className="text-destructive">{attempt.error}</p>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </Tabs.Content>
+                    ))}
+                  </Tabs.Root>
                 )}
-              </CardContent>
-            </Card>
-          ))}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex flex-wrap items-center gap-2 text-base">
-                Guest acknowledgement <Badge variant="outline">Mock Messaging API</Badge>
-                <Badge
-                  variant={result.acknowledgement.status === "failed" ? "destructive" : "secondary"}
-                >
-                  {result.acknowledgement.status === "sent" ? "Sent" : "Failed"}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <p className="whitespace-pre-wrap">{result.acknowledgement.text}</p>
-              {result.acknowledgement.status === "sent" ? (
-                <p className="text-xs text-muted-foreground">
-                  Delivery {result.acknowledgement.deliveryId}
-                </p>
-              ) : (
-                <p className="text-destructive">{result.acknowledgement.error}</p>
-              )}
-            </CardContent>
-          </Card>
-        </section>
-      )}
+              </Tabs.Content>
+              <Tabs.Content value="reply" className="pt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex flex-wrap items-center gap-2 text-base">
+                      Guest acknowledgement <Badge variant="outline">Mock Messaging API</Badge>
+                      <Badge
+                        variant={
+                          result.acknowledgement.status === "failed" ? "destructive" : "secondary"
+                        }
+                      >
+                        {result.acknowledgement.status === "sent" ? "Sent" : "Failed"}
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    <p className="whitespace-pre-wrap">{result.acknowledgement.text}</p>
+                    {result.acknowledgement.status === "sent" ? (
+                      <p className="text-xs text-muted-foreground">
+                        Delivery {result.acknowledgement.deliveryId}
+                      </p>
+                    ) : (
+                      <p className="text-destructive">{result.acknowledgement.error}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </Tabs.Content>
+            </Tabs.Root>
+          </div>
+        ) : (
+          <p className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
+            {pending
+              ? "Processing the message. Results will appear here."
+              : "Results appear here after you process a message."}
+          </p>
+        )}
+      </section>
     </div>
   );
 }
