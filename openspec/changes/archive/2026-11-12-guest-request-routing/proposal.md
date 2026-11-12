@@ -2,7 +2,7 @@
 
 ## Why
 
-Visayas Bay Resort needs guest messages turned into actionable department tasks and truthful acknowledgements. The repository provides an authenticated application foundation but no message processing; a small working flow will demonstrate multilingual routing against mock Tasks and Messaging APIs.
+Visayas Beach Resort needs guest messages turned into actionable department tasks and truthful acknowledgements. The repository provides an authenticated application foundation but no message processing; a small working flow will demonstrate multilingual routing against mock Tasks and Messaging APIs.
 
 ## What Changes
 
