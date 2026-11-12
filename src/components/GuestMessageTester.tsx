@@ -18,6 +18,7 @@ import {
   processingResultSchema,
   type ProcessingResult,
 } from "#/lib/guest-routing/contracts";
+import { getLanguageLabel, getLanguageSupportLabel } from "#/lib/guest-routing/languages";
 import { samples, testSenders } from "#/lib/guest-routing/samples";
 
 const departmentLabels = {
@@ -210,6 +211,10 @@ export function GuestMessageTester() {
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <p className="whitespace-pre-wrap">{attempt.task.details}</p>
+                <p>
+                  Guest language: {getLanguageLabel(attempt.task.detectedLanguage)} ·{" "}
+                  {getLanguageSupportLabel(attempt.task.detectedLanguage)}
+                </p>
                 <p>
                   Type: {attempt.task.type.replaceAll("_", " ")} · Room:{" "}
                   {attempt.task.room ?? "Unknown"}
