@@ -1,4 +1,4 @@
-# Guest request router
+# Guest Request Router
 
 A guest request router for Visayas Beach Resort.
 
@@ -59,12 +59,12 @@ Docker is also supported with `docker compose up --build`. Deployment is optiona
 
 The department mapping is fixed in code. The model extracts requests but cannot choose a department.
 
-| Request | Department |
-| --- | --- |
-| Towels | Housekeeping |
-| Late checkout | Front desk |
-| Complaint | Front desk |
-| Tour | Concierge |
+| Request         | Department        |
+| --------------- | ----------------- |
+| Towels          | Housekeeping      |
+| Late checkout   | Front desk        |
+| Complaint       | Front desk        |
+| Tour            | Concierge         |
 | Unknown request | Front desk review |
 
 See [`departments.md`](departments.md) for the full rules and examples.
